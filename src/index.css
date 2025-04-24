@@ -53,8 +53,9 @@ main{
 }
 
 .language{
-    display: inline-block;
-    height: 20px;
+    position: relative;
+    overflow: hidden;
+    height: fit-content;
     min-width: 30px;
     width: fit-content;
     padding: 5px;
@@ -62,6 +63,19 @@ main{
     font-size: 14px;
     font-weight: 500;
     text-align: center;
+}
+
+.dead{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.75); /* semi-transparent background */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
 }
 
 .dark-text{
@@ -86,10 +100,15 @@ main{
 }
 
 .keyboard{
+    width: 32rem;
     display: flex;
     flex-wrap: wrap;
-    width: 32rem;
     justify-content: center;
+    gap: 10px
+}
+
+.keyboard-row{
+    display: flex;
     gap: 10px
 }
 
@@ -101,4 +120,24 @@ main{
     border-radius: 4px;
     font-weight: 500;
     font-size: 18px;
+    cursor: pointer;
+}
+
+.message-box{
+    width: 22rem;
+    color: #F9F4DA;
+    display: inline-block;
+    text-align: center;
+    height: fit-content;
+    padding: 3px;
+}
+
+.message-box > h1{
+    font-size: 22px;
+    margin: 0;
+}
+
+.message-box > p{
+    font-size: 18px;
+    margin: 0;
 }

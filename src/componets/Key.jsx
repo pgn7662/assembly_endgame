@@ -2,9 +2,10 @@ import {useContext} from "react";
 import {KeyContext} from "../KeyContext.js";
 
 export default function Key(props){
-    const onSelect = useContext(KeyContext);
+    const context = useContext(KeyContext);
     return(
-        <button className="keys" name={props.character} disabled={props.state !== 'not-selected'} style={{backgroundColor: props.state === 'not-selected' ? '#FCBA29' : props.state === 'right' ? '#10A95B' : '#EC5D49'}} onClick={onSelect}>
+        <button className="keys" name={props.character} disabled={context.gameStatus !== 'in-progress'} style={{backgroundColor: props.state === 'not-selected' ? '#FCBA29' : props.state === 'correct' ? '#10A95B' : '#EC5D49'}}
+                onClick={context.onCharSelect}>
             {props.character}
         </button>
     )
