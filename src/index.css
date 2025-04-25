@@ -147,4 +147,7 @@ main{
     font-size: 18px;
     width: 15rem;
     height: 2.8rem;
+    border:#D7D7D7 solid 1px;
+    border-radius: 5px;
+    cursor: pointer;
 }
