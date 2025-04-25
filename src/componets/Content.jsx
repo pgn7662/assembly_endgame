@@ -2,11 +2,12 @@ import Message from "./Message.jsx";
 import Attempts from "./Attempts.jsx";
 import Keyboard from "./Keyboard.jsx";
 import Word from "./Word.jsx";
-import {useEffect, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import {nanoid} from "nanoid";
 import {KeyContext} from "../KeyContext.js";
 import ReactConfetti from "react-confetti";
 import NewGameButton from "./NewGameButton.jsx";
+import {faker} from "@faker-js/faker"
 
 export default function Content() {
     const [message, setMessage] = useState({
@@ -16,7 +17,7 @@ export default function Content() {
     const [languages, setLanguages] = useState(getInitialLanguages)
     const [word, setWord] = useState(Array.from({length: 8}, () => ''))
     const [keyboardCharacters, setKeyboardCharacters] = useState(getInitialKeyBoardCharacters);
-    const [solution, setSolution] = useState('REFACTOR')
+    const [solution, setSolution] = useState(getRandomWord)
     const numberOfAttemptsLeft = 8 - languages.filter(language => language.isDead).length
     const gameStatus = word.join('') === solution ? 'won' : numberOfAttemptsLeft < 1 ? 'lost' : 'in-progress'
     const [selectedCharacters, setSelectedCharacters] = useState([])
@@ -83,7 +84,7 @@ export default function Content() {
 
     function onCharSelect(event, selectedChar) {
         selectedChar = !selectedChar ? event.target.name : selectedChar
-        if (word.join('').includes(selectedChar) || selectedCharacters.includes(selectedChar)) {
+        if (word.join('').includes(selectedChar) || selectedCharacters.includes(selectedChar) && numberOfAttemptsLeft < 1) {
             return;
         }
         const matchedIndices = []
@@ -93,7 +94,7 @@ export default function Content() {
         setSelectedCharacters(prevChars => [...prevChars, selectedChar])
         setKeyboardCharacters(prevKeyboardChars => prevKeyboardChars.map(
             keyboardChar => {
-                if (keyboardChar.character === selectedChar) {
+                if (keyboardChar.character === selectedChar && numberOfAttemptsLeft !== 0) {
                     return {...keyboardChar, state: updatedState}
                 } else {
                     return keyboardChar
@@ -106,19 +107,25 @@ export default function Content() {
         }
     }
 
-    function changeWord() {
-        setSolution(prevState => 'THURSDAY')
+    function getRandomWord() {
+        return faker.word.noun({length: 8}).toUpperCase()
     }
 
-    function onType(event) {
+    function changeWord(){
+        setSolution(getRandomWord)
+    }
+
+    const onType = useCallback((event) => {
+        if (gameStatus !== 'in-progress') return;
+
         const typedLetter = event.key.toUpperCase()
         if (typedLetter.length === 1 && typedLetter.charCodeAt(0) > 64 && typedLetter.charCodeAt(0) < 91) {
             onCharSelect(undefined, typedLetter)
         }
-    }
+    }, [gameStatus, onCharSelect, solution]);
 
     useEffect(() => {
-        if (keyboardCharacters.filter(keyboardCharacter => keyboardCharacter.state === 'wrong').length) {
+        if (selectedCharacters.length && !solution.includes(selectedCharacters.toReversed()[0])) {
             setLanguages(prevLanguages => prevLanguages.map((language, index) => {
                 if (index === 8 - numberOfAttemptsLeft) {
                     return {...language, isDead: true}
@@ -127,17 +134,15 @@ export default function Content() {
                 }
             }))
         }
-    }, [keyboardCharacters])
+    }, [selectedCharacters])
 
     useEffect(() => {
         if (gameStatus !== 'in-progress') {
             setMessage(prevMessage => ({
                 heading: gameStatus === 'won' ? 'You win!' : 'Game Over!',
-                description: gameStatus === 'won' ? 'Well done! 🎉' : 'You lose! Better start learning Assembly 😭'
+                description: gameStatus === 'won' ? 'Well done! 🎉' : 'You lose! Better start learning Assembly 😭 Correct answer : '+solution
             }))
-            if (gameStatus !== 'won') {
-                document.removeEventListener("keyup", onType)
-            }
+            document.removeEventListener("keyup", onType)
         } else if (numberOfAttemptsLeft < 8) {
             setMessage(prevState => ({
                 heading: 'Farewell! 🫡',
@@ -160,7 +165,7 @@ export default function Content() {
     useEffect(() => {
         document.addEventListener("keyup", onType)
         return () => document.removeEventListener("keyup", onType)
-    }, [])
+    }, [onType])
 
 
     const contextValue = {gameStatus, onCharSelect}
