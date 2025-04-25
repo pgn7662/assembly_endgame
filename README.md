@@ -1,1 +1,2 @@
-# assembly_endgame
+# Assembly Endgame
+A word guessing game where, you need to find a 8 letter word and you have only 8 unsuccessful attempts. For one unsuccessful attempt a language will become dead and eventually if you lose all attempts all languages (like Python, Java, Go,Javascript, C#, PHP, Ruby, C) will be dead and Assembly language will be the only language present in this world. No need to hurry up as there are no time limitations and you can either use your keyboard or the keyboard present in the game. Only nouns will be present. You can guess as many words you can. Best of luck!
