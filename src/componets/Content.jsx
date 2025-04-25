@@ -84,7 +84,7 @@ export default function Content() {
 
     function onCharSelect(event, selectedChar) {
         selectedChar = !selectedChar ? event.target.name : selectedChar
-        if (word.join('').includes(selectedChar) || selectedCharacters.includes(selectedChar) && numberOfAttemptsLeft < 1) {
+        if (word.join('').includes(selectedChar) || selectedCharacters.includes(selectedChar)) {
             return;
         }
         const matchedIndices = []
@@ -122,7 +122,7 @@ export default function Content() {
         if (typedLetter.length === 1 && typedLetter.charCodeAt(0) > 64 && typedLetter.charCodeAt(0) < 91) {
             onCharSelect(undefined, typedLetter)
         }
-    }, [gameStatus, onCharSelect, solution]);
+    }, [gameStatus, solution]);
 
     useEffect(() => {
         if (selectedCharacters.length && !solution.includes(selectedCharacters.toReversed()[0])) {
@@ -144,15 +144,19 @@ export default function Content() {
             }))
             document.removeEventListener("keyup", onType)
         } else if (numberOfAttemptsLeft < 8) {
-            setMessage(prevState => ({
-                heading: 'Farewell! 🫡',
-                description: 'RIP ' + languages.reduce((accumulator, language, index) => {
+            setMessage(function(prevMessage){
+                let deadLanguages = languages.reduce((accumulator, language, index) => {
                     accumulator += language.isDead ? language.name + ', ' : ''
                     return accumulator
-                }, '')
-            }))
+                },'')
+                deadLanguages = deadLanguages.substring(0,deadLanguages.length - 2)
+                return{
+                    heading: 'Farewell! 🫡',
+                    description: 'RIP ' + deadLanguages
+                }
+            })
         }
-    }, [gameStatus])
+    }, [languages,gameStatus])
 
     useEffect(() => {
         setMessage({heading: 'Let Set Go!', description: 'Save your favorite programming languages'});
