@@ -6,15 +6,20 @@ import {useEffect, useState} from "react";
 import {nanoid} from "nanoid";
 import {KeyContext} from "../KeyContext.js";
 import ReactConfetti from "react-confetti";
+import NewGameButton from "./NewGameButton.jsx";
 
 export default function Content() {
-    const [message, setMessage] = useState({heading: 'Let Set Go!',description: 'Save your favorite programming languages'})
+    const [message, setMessage] = useState({
+        heading: 'Let Set Go!',
+        description: 'Save your favorite programming languages'
+    })
     const [languages, setLanguages] = useState(getInitialLanguages)
     const [word, setWord] = useState(Array.from({length: 8}, () => ''))
     const [keyboardCharacters, setKeyboardCharacters] = useState(getInitialKeyBoardCharacters);
-    const solution = 'REFACTOR'
+    const [solution, setSolution] = useState('REFACTOR')
     const numberOfAttemptsLeft = 8 - languages.filter(language => language.isDead).length
     const gameStatus = word.join('') === solution ? 'won' : numberOfAttemptsLeft < 1 ? 'lost' : 'in-progress'
+    const [selectedCharacters, setSelectedCharacters] = useState([])
 
     function getInitialKeyBoardCharacters() {
         return `QWERTYUIOPASDFGHJKLZXCVBNM`.split('').map(key => {
@@ -76,60 +81,89 @@ export default function Content() {
             }];
     }
 
-    function onCharSelect(event){
-        const selectedChar = event.target.name
-        if(word.join('').includes(selectedChar)){
+    function onCharSelect(event, selectedChar) {
+        selectedChar = !selectedChar ? event.target.name : selectedChar
+        if (word.join('').includes(selectedChar) || selectedCharacters.includes(selectedChar)) {
             return;
         }
         const matchedIndices = []
-        solution.split('').forEach((value,index) => value === selectedChar && matchedIndices.push(index))
+        solution.split('').forEach((value, index) => value === selectedChar && matchedIndices.push(index))
         const isCorrectChar = matchedIndices.length > 0
         const updatedState = isCorrectChar ? 'correct' : 'wrong'
+        setSelectedCharacters(prevChars => [...prevChars, selectedChar])
         setKeyboardCharacters(prevKeyboardChars => prevKeyboardChars.map(
             keyboardChar => {
-                if(keyboardChar.character === selectedChar){
-                      return {...keyboardChar,state: updatedState}
-                }else{
+                if (keyboardChar.character === selectedChar) {
+                    return {...keyboardChar, state: updatedState}
+                } else {
                     return keyboardChar
                 }
             }
         ))
-        if(isCorrectChar){
+        if (isCorrectChar) {
             setWord(prevWord => prevWord.map(
-                (char,index) => matchedIndices.includes(index) ? selectedChar : char));
+                (char, index) => matchedIndices.includes(index) ? selectedChar : char));
         }
     }
 
-    useEffect(()=>{
-        if(keyboardCharacters.filter(keyboardCharacter => keyboardCharacter.state === 'wrong').length){
-            setLanguages(prevLanguages => prevLanguages.map((language,index) => {
-                if(index === 8 - numberOfAttemptsLeft){
-                    return {...language,isDead: true}
-                }else{
+    function changeWord() {
+        setSolution(prevState => 'THURSDAY')
+    }
+
+    function onType(event) {
+        const typedLetter = event.key.toUpperCase()
+        if (typedLetter.length === 1 && typedLetter.charCodeAt(0) > 64 && typedLetter.charCodeAt(0) < 91) {
+            onCharSelect(undefined, typedLetter)
+        }
+    }
+
+    useEffect(() => {
+        if (keyboardCharacters.filter(keyboardCharacter => keyboardCharacter.state === 'wrong').length) {
+            setLanguages(prevLanguages => prevLanguages.map((language, index) => {
+                if (index === 8 - numberOfAttemptsLeft) {
+                    return {...language, isDead: true}
+                } else {
                     return language;
                 }
             }))
         }
-    },[keyboardCharacters])
+    }, [keyboardCharacters])
 
-    useEffect(() =>{
-        if(gameStatus !== 'in-progress'){
+    useEffect(() => {
+        if (gameStatus !== 'in-progress') {
             setMessage(prevMessage => ({
-                heading :  gameStatus === 'won' ? 'You win!' : 'Game Over!',
+                heading: gameStatus === 'won' ? 'You win!' : 'Game Over!',
                 description: gameStatus === 'won' ? 'Well done! 🎉' : 'You lose! Better start learning Assembly 😭'
             }))
-        }else if(numberOfAttemptsLeft < 8){
+            if (gameStatus !== 'won') {
+                document.removeEventListener("keyup", onType)
+            }
+        } else if (numberOfAttemptsLeft < 8) {
             setMessage(prevState => ({
                 heading: 'Farewell! 🫡',
-                description :'RIP '+languages.reduce((accumulator,language,index) => {
-                    accumulator += language.isDead ? language.name + ', ': ''
+                description: 'RIP ' + languages.reduce((accumulator, language, index) => {
+                    accumulator += language.isDead ? language.name + ', ' : ''
                     return accumulator
-                },'')
+                }, '')
             }))
         }
-    },[gameStatus])
+    }, [gameStatus])
 
-    const contextValue = {gameStatus,onCharSelect}
+    useEffect(() => {
+        setMessage({heading: 'Let Set Go!', description: 'Save your favorite programming languages'});
+        setLanguages(getInitialLanguages)
+        setWord(Array.from({length: 8}, () => ''))
+        setKeyboardCharacters(getInitialKeyBoardCharacters)
+        setSelectedCharacters([])
+    }, [solution])
+
+    useEffect(() => {
+        document.addEventListener("keyup", onType)
+        return () => document.removeEventListener("keyup", onType)
+    }, [])
+
+
+    const contextValue = {gameStatus, onCharSelect}
 
     return (
         <main>
@@ -140,6 +174,7 @@ export default function Content() {
             <KeyContext.Provider value={contextValue}>
                 <Keyboard isGameOver={gameStatus} keyboardChars={keyboardCharacters}></Keyboard>
             </KeyContext.Provider>
+            {gameStatus !== 'in-progress' && <NewGameButton onClick={changeWord}></NewGameButton>}
         </main>
     )
 }

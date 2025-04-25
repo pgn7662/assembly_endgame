@@ -141,3 +141,10 @@ main{
     font-size: 18px;
     margin: 0;
 }
+
+.new-game-btn{
+    background-color:#11B5E5;
+    font-size: 18px;
+    width: 15rem;
+    height: 2.8rem;
+}
