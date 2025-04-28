@@ -84,7 +84,7 @@ export default function Content() {
 
     function onCharSelect(event, selectedChar) {
         selectedChar = !selectedChar ? event.target.name : selectedChar
-        if (word.join('').includes(selectedChar) || selectedCharacters.includes(selectedChar)) {
+        if (word.includes(selectedChar) || selectedCharacters.includes(selectedChar)) {
             return;
         }
         const matchedIndices = []
@@ -122,7 +122,7 @@ export default function Content() {
         if (typedLetter.length === 1 && typedLetter.charCodeAt(0) > 64 && typedLetter.charCodeAt(0) < 91) {
             onCharSelect(undefined, typedLetter)
         }
-    }, [gameStatus, solution]);
+    }, [gameStatus,onCharSelect,solution]);
 
     useEffect(() => {
         if (selectedCharacters.length && !solution.includes(selectedCharacters.toReversed()[0])) {
