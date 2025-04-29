@@ -11,13 +11,14 @@ import {faker} from "@faker-js/faker"
 import getLanguages from "../util/languages.js";
 
 export default function Content() {
-    const [languages, setLanguages] = useState(getInitialLanguages)
+    const languages = getLanguages().map(language => ({...language, id: nanoid()}))
     const [guessedCharacters, setGuessedCharacters] = useState([])
     const [solution, setSolution] = useState(getRandomWord)
     const displayedWord = solution
         .split('')
         .map((char) => guessedCharacters.includes(char) ? char : '');
-    const numberOfAttemptsLeft = 8 - languages.filter(language => language.isDead).length
+    const wrongAttempts = guessedCharacters.filter(char => !solution.includes(char)).length
+    const numberOfAttemptsLeft = 8 - wrongAttempts
     const gameStatus = displayedWord.join('') === solution ? 'won' : numberOfAttemptsLeft < 1 ? 'lost' : 'in-progress'
     const message = getMessage();
 
@@ -34,11 +35,11 @@ export default function Content() {
                     description: 'You lose! Better start learning Assembly 😭 Correct answer : ' + solution
                 }
             case 'in-progress': {
-                if(guessedCharacters.length && numberOfAttemptsLeft < 8){
-                    let deadLanguages = languages.reduce((accumulator, language, index) => {
-                        accumulator += language.isDead ? language.name + ', ' : ''
+                if(guessedCharacters.length && wrongAttempts > 0){
+                    let deadLanguages = languages.slice(0,wrongAttempts).reduce((accumulator,language) => {
+                        accumulator += language.name+', '
                         return accumulator
-                    }, '')
+                    },'')
                     deadLanguages = deadLanguages.substring(0, deadLanguages.length - 2)
                     return {
                         heading: 'Farewell! 🫡',
@@ -51,10 +52,6 @@ export default function Content() {
                 }
             }
         }
-    }
-
-    function getInitialLanguages() {
-        return getLanguages().map(language => ({...language, id: nanoid(), isDead: false}))
     }
 
     function onCharSelect(event, selectedChar) {
@@ -73,7 +70,6 @@ export default function Content() {
     }
 
     function resetGame() {
-        setLanguages(getInitialLanguages)
         setGuessedCharacters([])
         setSolution(getRandomWord)
     }
@@ -92,18 +88,6 @@ export default function Content() {
     }, [gameStatus, onCharSelect, solution]);
 
     useEffect(() => {
-        if (guessedCharacters.length && !solution.includes(guessedCharacters.toReversed()[0])) {
-            setLanguages(prevLanguages => prevLanguages.map((language, index) => {
-                if (index === 8 - numberOfAttemptsLeft) {
-                    return {...language, isDead: true}
-                } else {
-                    return language;
-                }
-            }))
-        }
-    }, [guessedCharacters])
-
-    useEffect(() => {
         gameStatus !== 'in-progress' && document.removeEventListener("keyup", onType)
     }, [gameStatus])
 
@@ -119,7 +103,7 @@ export default function Content() {
         <main>
             {gameStatus === "won" && <ReactConfetti></ReactConfetti>}
             <Message desc={message.description} heading={message.heading} gameStatus={gameStatus}></Message>
-            <Attempts languages={languages}></Attempts>
+            <Attempts languages={languages} wrongAttempts={wrongAttempts}></Attempts>
             <Word word={displayedWord}></Word>
             <KeyContext.Provider value={contextValue}>
                 <Keyboard getKeyState={getKeyState}></Keyboard>
