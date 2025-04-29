@@ -3,7 +3,7 @@ import {nanoid} from "nanoid";
 
 export default function Attempts(props) {
     const languageList = props.languages.map((language,index) =>
-        <Language key={language.id} color={language.color} name={language.name} isDead={index <= props.wrongAttempts-1}/>)
+        <Language key={language.id} color={language.color} name={language.name} isDead={language.id <= props.wrongAttempts-1}/>)
     return(
         <div className="language-cont">
             {languageList}

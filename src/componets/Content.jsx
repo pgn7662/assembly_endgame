@@ -11,7 +11,7 @@ import {faker} from "@faker-js/faker"
 import getLanguages from "../util/languages.js";
 
 export default function Content() {
-    const languages = getLanguages().map(language => ({...language, id: nanoid()}))
+    const languages = getLanguages().map((language,index) => ({...language, id: index}))
     const [guessedCharacters, setGuessedCharacters] = useState([])
     const [solution, setSolution] = useState(getRandomWord)
     const displayedWord = solution
