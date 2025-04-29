@@ -83,19 +83,18 @@ export default function Content() {
     }
 
     function onCharSelect(event, selectedChar) {
-        selectedChar = !selectedChar ? event.target.name : selectedChar
-        if (word.includes(selectedChar) || selectedCharacters.includes(selectedChar)) {
+        selectedChar = selectedChar || event.target.name
+        if (selectedCharacters.includes(selectedChar)) {
             return;
         }
         const matchedIndices = []
         solution.split('').forEach((value, index) => value === selectedChar && matchedIndices.push(index))
         const isCorrectChar = matchedIndices.length > 0
-        const updatedState = isCorrectChar ? 'correct' : 'wrong'
         setSelectedCharacters(prevChars => [...prevChars, selectedChar])
         setKeyboardCharacters(prevKeyboardChars => prevKeyboardChars.map(
             keyboardChar => {
                 if (keyboardChar.character === selectedChar && numberOfAttemptsLeft !== 0) {
-                    return {...keyboardChar, state: updatedState}
+                    return {...keyboardChar, state: isCorrectChar ? 'correct' : 'wrong'}
                 } else {
                     return keyboardChar
                 }
@@ -108,10 +107,15 @@ export default function Content() {
     }
 
     function getRandomWord() {
-        return faker.word.noun({length: 8}).toUpperCase()
+        return faker.word.noun({length: {min : 5, max : 8}}).toUpperCase()
     }
 
-    function changeWord(){
+    function resetGame() {
+        setMessage({heading: 'Let Set Go!', description: 'Save your favorite programming languages'});
+        setLanguages(getInitialLanguages)
+        setWord(Array.from({length: 8}, () => ''))
+        setKeyboardCharacters(getInitialKeyBoardCharacters)
+        setSelectedCharacters([])
         setSolution(getRandomWord)
     }
 
@@ -159,11 +163,7 @@ export default function Content() {
     }, [languages,gameStatus])
 
     useEffect(() => {
-        setMessage({heading: 'Let Set Go!', description: 'Save your favorite programming languages'});
-        setLanguages(getInitialLanguages)
-        setWord(Array.from({length: 8}, () => ''))
-        setKeyboardCharacters(getInitialKeyBoardCharacters)
-        setSelectedCharacters([])
+        setWord(Array.from({length: solution.length}, () => ''))
     }, [solution])
 
     useEffect(() => {
@@ -183,7 +183,7 @@ export default function Content() {
             <KeyContext.Provider value={contextValue}>
                 <Keyboard isGameOver={gameStatus} keyboardChars={keyboardCharacters}></Keyboard>
             </KeyContext.Provider>
-            {gameStatus !== 'in-progress' && <NewGameButton onClick={changeWord}></NewGameButton>}
+            {gameStatus !== 'in-progress' && <NewGameButton onClick={resetGame}></NewGameButton>}
         </main>
     )
 }
