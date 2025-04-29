@@ -1,14 +1,16 @@
 import Keys from "./Key.jsx";
 
 export default function Keyboard(props) {
-    const keys = props.keyboardChars;
-    function getKeyBoardRow(keys){
-        return keys.map(key => <Keys character={key.character} key={key.id}
-                                     state={key.state}/>)
+    function getKeyBoardRow(keys) {
+        return keys.split('').map((key) => {
+            return <Keys character={key}
+                         state={props.getKeyState(key)}/>
+        })
     }
-    const firstRow = getKeyBoardRow(keys.slice(0,10));
-    const secondRow = getKeyBoardRow(keys.slice(10,19));
-    const thirdRow = getKeyBoardRow(keys.slice(20-27));
+
+    const firstRow = getKeyBoardRow('QWERTYUIOP');
+    const secondRow = getKeyBoardRow('ASDFGHJKL');
+    const thirdRow = getKeyBoardRow('ZXCVBNM');
     return (
         <div className="keyboard">
             <div className="keyboard-row">

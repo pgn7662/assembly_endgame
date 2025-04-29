@@ -16,21 +16,10 @@ export default function Content() {
     })
     const [languages, setLanguages] = useState(getInitialLanguages)
     const [word, setWord] = useState(Array.from({length: 8}, () => ''))
-    const [keyboardCharacters, setKeyboardCharacters] = useState(getInitialKeyBoardCharacters);
     const [solution, setSolution] = useState(getRandomWord)
     const numberOfAttemptsLeft = 8 - languages.filter(language => language.isDead).length
     const gameStatus = word.join('') === solution ? 'won' : numberOfAttemptsLeft < 1 ? 'lost' : 'in-progress'
     const [selectedCharacters, setSelectedCharacters] = useState([])
-
-    function getInitialKeyBoardCharacters() {
-        return `QWERTYUIOPASDFGHJKLZXCVBNM`.split('').map(key => {
-            return {
-                id: nanoid(),
-                character: key,
-                state: 'not-selected'
-            }
-        })
-    }
 
     function getInitialLanguages() {
         return [
@@ -91,15 +80,6 @@ export default function Content() {
         solution.split('').forEach((value, index) => value === selectedChar && matchedIndices.push(index))
         const isCorrectChar = matchedIndices.length > 0
         setSelectedCharacters(prevChars => [...prevChars, selectedChar])
-        setKeyboardCharacters(prevKeyboardChars => prevKeyboardChars.map(
-            keyboardChar => {
-                if (keyboardChar.character === selectedChar && numberOfAttemptsLeft !== 0) {
-                    return {...keyboardChar, state: isCorrectChar ? 'correct' : 'wrong'}
-                } else {
-                    return keyboardChar
-                }
-            }
-        ))
         if (isCorrectChar) {
             setWord(prevWord => prevWord.map(
                 (char, index) => matchedIndices.includes(index) ? selectedChar : char));
@@ -114,9 +94,12 @@ export default function Content() {
         setMessage({heading: 'Let Set Go!', description: 'Save your favorite programming languages'});
         setLanguages(getInitialLanguages)
         setWord(Array.from({length: 8}, () => ''))
-        setKeyboardCharacters(getInitialKeyBoardCharacters)
         setSelectedCharacters([])
         setSolution(getRandomWord)
+    }
+
+    function getKeyState(key){
+        return !selectedCharacters.includes(key) ? 'not-selected' : solution.includes(key) ? 'correct' : 'wrong'
     }
 
     const onType = useCallback((event) => {
@@ -181,7 +164,7 @@ export default function Content() {
             <Attempts languages={languages}></Attempts>
             <Word word={word}></Word>
             <KeyContext.Provider value={contextValue}>
-                <Keyboard isGameOver={gameStatus} keyboardChars={keyboardCharacters}></Keyboard>
+                <Keyboard getKeyState={getKeyState}></Keyboard>
             </KeyContext.Provider>
             {gameStatus !== 'in-progress' && <NewGameButton onClick={resetGame}></NewGameButton>}
         </main>
