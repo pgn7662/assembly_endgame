@@ -18,8 +18,7 @@ export default function Content() {
         .split('')
         .map((char) => guessedCharacters.includes(char) ? char : '');
     const wrongAttempts = guessedCharacters.filter(char => !solution.includes(char)).length
-    const numberOfAttemptsLeft = 8 - wrongAttempts
-    const gameStatus = displayedWord.join('') === solution ? 'won' : numberOfAttemptsLeft < 1 ? 'lost' : 'in-progress'
+    const gameStatus = displayedWord.join('') === solution ? 'won' : wrongAttempts === 8 ? 'lost' : 'in-progress'
     const message = getMessage();
 
     function getMessage() {
