@@ -15,11 +15,13 @@ export default function Content() {
         description: 'Save your favorite programming languages'
     })
     const [languages, setLanguages] = useState(getInitialLanguages)
-    const [word, setWord] = useState(Array.from({length: 8}, () => ''))
+    const [guessedCharacters, setGuessedCharacters] = useState([])
     const [solution, setSolution] = useState(getRandomWord)
+    const displayedWord = solution
+        .split('')
+        .map((char) => guessedCharacters.includes(char) ? char : '');
     const numberOfAttemptsLeft = 8 - languages.filter(language => language.isDead).length
-    const gameStatus = word.join('') === solution ? 'won' : numberOfAttemptsLeft < 1 ? 'lost' : 'in-progress'
-    const [selectedCharacters, setSelectedCharacters] = useState([])
+    const gameStatus = displayedWord.join('') === solution ? 'won' : numberOfAttemptsLeft < 1 ? 'lost' : 'in-progress'
 
     function getInitialLanguages() {
         return [
@@ -73,17 +75,13 @@ export default function Content() {
 
     function onCharSelect(event, selectedChar) {
         selectedChar = selectedChar || event.target.name
-        if (selectedCharacters.includes(selectedChar)) {
+        if (guessedCharacters.includes(selectedChar)) {
             return;
         }
         const matchedIndices = []
         solution.split('').forEach((value, index) => value === selectedChar && matchedIndices.push(index))
         const isCorrectChar = matchedIndices.length > 0
-        setSelectedCharacters(prevChars => [...prevChars, selectedChar])
-        if (isCorrectChar) {
-            setWord(prevWord => prevWord.map(
-                (char, index) => matchedIndices.includes(index) ? selectedChar : char));
-        }
+        setGuessedCharacters(prevChars => [...prevChars, selectedChar])
     }
 
     function getRandomWord() {
@@ -93,13 +91,12 @@ export default function Content() {
     function resetGame() {
         setMessage({heading: 'Let Set Go!', description: 'Save your favorite programming languages'});
         setLanguages(getInitialLanguages)
-        setWord(Array.from({length: 8}, () => ''))
-        setSelectedCharacters([])
+        setGuessedCharacters([])
         setSolution(getRandomWord)
     }
 
     function getKeyState(key){
-        return !selectedCharacters.includes(key) ? 'not-selected' : solution.includes(key) ? 'correct' : 'wrong'
+        return !guessedCharacters.includes(key) ? 'not-selected' : solution.includes(key) ? 'correct' : 'wrong'
     }
 
     const onType = useCallback((event) => {
@@ -112,7 +109,7 @@ export default function Content() {
     }, [gameStatus,onCharSelect,solution]);
 
     useEffect(() => {
-        if (selectedCharacters.length && !solution.includes(selectedCharacters.toReversed()[0])) {
+        if (guessedCharacters.length && !solution.includes(guessedCharacters.toReversed()[0])) {
             setLanguages(prevLanguages => prevLanguages.map((language, index) => {
                 if (index === 8 - numberOfAttemptsLeft) {
                     return {...language, isDead: true}
@@ -121,7 +118,7 @@ export default function Content() {
                 }
             }))
         }
-    }, [selectedCharacters])
+    }, [guessedCharacters])
 
     useEffect(() => {
         if (gameStatus !== 'in-progress') {
@@ -146,10 +143,6 @@ export default function Content() {
     }, [languages,gameStatus])
 
     useEffect(() => {
-        setWord(Array.from({length: solution.length}, () => ''))
-    }, [solution])
-
-    useEffect(() => {
         document.addEventListener("keyup", onType)
         return () => document.removeEventListener("keyup", onType)
     }, [onType])
@@ -162,7 +155,7 @@ export default function Content() {
             {gameStatus === "won" && <ReactConfetti></ReactConfetti>}
             <Message desc={message.description} heading={message.heading} gameStatus={gameStatus}></Message>
             <Attempts languages={languages}></Attempts>
-            <Word word={word}></Word>
+            <Word word={displayedWord}></Word>
             <KeyContext.Provider value={contextValue}>
                 <Keyboard getKeyState={getKeyState}></Keyboard>
             </KeyContext.Provider>

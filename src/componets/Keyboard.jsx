@@ -2,8 +2,8 @@ import Keys from "./Key.jsx";
 
 export default function Keyboard(props) {
     function getKeyBoardRow(keys) {
-        return keys.split('').map((key) => {
-            return <Keys character={key}
+        return keys.split('').map((key,index) => {
+            return <Keys character={key} key={index}
                          state={props.getKeyState(key)}/>
         })
     }
