@@ -4,16 +4,13 @@ import Keyboard from "./Keyboard.jsx";
 import Word from "./Word.jsx";
 import {useCallback, useEffect, useState} from "react";
 import {nanoid} from "nanoid";
-import {KeyContext} from "../KeyContext.js";
+import {KeyContext} from "../util/KeyContext.js";
 import ReactConfetti from "react-confetti";
 import NewGameButton from "./NewGameButton.jsx";
 import {faker} from "@faker-js/faker"
+import getLanguages from "../util/languages.js";
 
 export default function Content() {
-    const [message, setMessage] = useState({
-        heading: 'Let Set Go!',
-        description: 'Save your favorite programming languages'
-    })
     const [languages, setLanguages] = useState(getInitialLanguages)
     const [guessedCharacters, setGuessedCharacters] = useState([])
     const [solution, setSolution] = useState(getRandomWord)
@@ -22,55 +19,42 @@ export default function Content() {
         .map((char) => guessedCharacters.includes(char) ? char : '');
     const numberOfAttemptsLeft = 8 - languages.filter(language => language.isDead).length
     const gameStatus = displayedWord.join('') === solution ? 'won' : numberOfAttemptsLeft < 1 ? 'lost' : 'in-progress'
+    const message = getMessage();
+
+    function getMessage() {
+        switch (gameStatus) {
+            case 'won':
+                return {
+                    heading: 'You win!',
+                    description: 'Well done! 🎉'
+                }
+            case 'lost':
+                return {
+                    heading: 'Game Over!',
+                    description: 'You lose! Better start learning Assembly 😭 Correct answer : ' + solution
+                }
+            case 'in-progress': {
+                if(guessedCharacters.length && numberOfAttemptsLeft < 8){
+                    let deadLanguages = languages.reduce((accumulator, language, index) => {
+                        accumulator += language.isDead ? language.name + ', ' : ''
+                        return accumulator
+                    }, '')
+                    deadLanguages = deadLanguages.substring(0, deadLanguages.length - 2)
+                    return {
+                        heading: 'Farewell! 🫡',
+                        description: 'RIP ' + deadLanguages
+                    }
+                }
+                return {
+                   heading: 'Let Set Go!',
+                   description: 'Save your favorite programming languages'
+                }
+            }
+        }
+    }
 
     function getInitialLanguages() {
-        return [
-            {
-                name: 'Python',
-                id: nanoid(),
-                isDead: false,
-                color: '#FFD742'
-            }, {
-                name: 'Java',
-                id: nanoid(),
-                isDead: false,
-                color: '#ED8B00'
-            }, {
-                name: 'Javascript',
-                id: nanoid(),
-                isDead: false,
-                color: '#f7df1e'
-            }, {
-                name: 'Go',
-                id: nanoid(),
-                isDead: false,
-                color: '#00ADD8'
-            }, {
-                name: 'C#',
-                id: nanoid(),
-                isDead: false,
-                color: '#9b4993'
-            }, {
-                name: 'Ruby',
-                id: nanoid(),
-                isDead: false,
-                color: 'red'
-            }, {
-                name: 'PHP',
-                id: nanoid(),
-                isDead: false,
-                color: '#8892be'
-            }, {
-                name: 'C',
-                id: nanoid(),
-                isDead: false,
-                color: '#943051'
-            }, {
-                name: 'Assembly',
-                id: nanoid(),
-                isDead: false,
-                color: 'black'
-            }];
+        return getLanguages().map(language => ({...language, id: nanoid(), isDead: false}))
     }
 
     function onCharSelect(event, selectedChar) {
@@ -85,17 +69,16 @@ export default function Content() {
     }
 
     function getRandomWord() {
-        return faker.word.noun({length: {min : 5, max : 8}}).toUpperCase()
+        return faker.word.noun({length: {min: 5, max: 8}}).toUpperCase()
     }
 
     function resetGame() {
-        setMessage({heading: 'Let Set Go!', description: 'Save your favorite programming languages'});
         setLanguages(getInitialLanguages)
         setGuessedCharacters([])
         setSolution(getRandomWord)
     }
 
-    function getKeyState(key){
+    function getKeyState(key) {
         return !guessedCharacters.includes(key) ? 'not-selected' : solution.includes(key) ? 'correct' : 'wrong'
     }
 
@@ -106,7 +89,7 @@ export default function Content() {
         if (typedLetter.length === 1 && typedLetter.charCodeAt(0) > 64 && typedLetter.charCodeAt(0) < 91) {
             onCharSelect(undefined, typedLetter)
         }
-    }, [gameStatus,onCharSelect,solution]);
+    }, [gameStatus, onCharSelect, solution]);
 
     useEffect(() => {
         if (guessedCharacters.length && !solution.includes(guessedCharacters.toReversed()[0])) {
@@ -121,26 +104,8 @@ export default function Content() {
     }, [guessedCharacters])
 
     useEffect(() => {
-        if (gameStatus !== 'in-progress') {
-            setMessage(prevMessage => ({
-                heading: gameStatus === 'won' ? 'You win!' : 'Game Over!',
-                description: gameStatus === 'won' ? 'Well done! 🎉' : 'You lose! Better start learning Assembly 😭 Correct answer : '+solution
-            }))
-            document.removeEventListener("keyup", onType)
-        } else if (numberOfAttemptsLeft < 8) {
-            setMessage(function(prevMessage){
-                let deadLanguages = languages.reduce((accumulator, language, index) => {
-                    accumulator += language.isDead ? language.name + ', ' : ''
-                    return accumulator
-                },'')
-                deadLanguages = deadLanguages.substring(0,deadLanguages.length - 2)
-                return{
-                    heading: 'Farewell! 🫡',
-                    description: 'RIP ' + deadLanguages
-                }
-            })
-        }
-    }, [languages,gameStatus])
+        gameStatus !== 'in-progress' && document.removeEventListener("keyup", onType)
+    }, [gameStatus])
 
     useEffect(() => {
         document.addEventListener("keyup", onType)

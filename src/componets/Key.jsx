@@ -1,5 +1,5 @@
 import {useContext} from "react";
-import {KeyContext} from "../KeyContext.js";
+import {KeyContext} from "../util/KeyContext.js";
 
 export default function Key(props){
     const context = useContext(KeyContext);
