@@ -123,6 +123,11 @@ main{
     cursor: pointer;
 }
 
+.keys:disabled{
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
 .message-box{
     width: 22rem;
     color: #F9F4DA;
@@ -150,4 +155,15 @@ main{
     border:#D7D7D7 solid 1px;
     border-radius: 5px;
     cursor: pointer;
+}
+
+.hidden{
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
 }
