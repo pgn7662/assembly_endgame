@@ -99,6 +99,10 @@ main{
     text-align: center;
 }
 
+.missed-char{
+    color:#EC5D49;
+}
+
 .keyboard{
     width: 32rem;
     display: flex;

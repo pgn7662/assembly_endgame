@@ -31,7 +31,7 @@ export default function Content() {
             case 'lost':
                 return {
                     heading: 'Game Over!',
-                    description: 'You lose! Better start learning Assembly 😭 Correct answer : ' + solution
+                    description: 'You lose! Better start learning Assembly 😭'
                 }
             case 'in-progress': {
                 if (guessedCharacters.length && wrongAttempts > 0) {
@@ -118,7 +118,7 @@ export default function Content() {
                     .join(" ")}
                 </p>
             </section>
-            <Word word={displayedWord}></Word>
+            <Word guessedWord={displayedWord} answer={solution} isGameOver={gameStatus === 'lost'}></Word>
             <KeyContext.Provider value={contextValue}>
                 <Keyboard getKeyState={getKeyState}></Keyboard>
             </KeyContext.Provider>
